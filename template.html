@@ -199,9 +199,10 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
   footer{padding:20px 16px;flex-direction:column;gap:8px;text-align:center}
 }
 </style>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<meta id="signed-meta" data-signed="false" data-date="" data-sigurl="">
 
 <nav>
   <div class="nav-brand">RocketRush.</div>
@@ -479,37 +480,39 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
 </footer>
 
 <script>
-/* ── CONFIG ── */
+/* ── FIREBASE CONFIG ── */
+var firebaseConfig = {
+  apiKey:            "AIzaSyD0ePC5pzuZHO1eOc_baISnHZg18Ufohbo",
+  authDomain:        "rocketrush-proposals.firebaseapp.com",
+  projectId:         "rocketrush-proposals",
+  storageBucket:     "rocketrush-proposals.firebasestorage.app",
+  messagingSenderId: "662352830335",
+  appId:             "1:662352830335:web:3bd7dea8915d309a10844a"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+/* ── OTHER CONFIG ── */
 var CLOUDINARY_CLOUD  = 'dsjpiafaa';
 var CLOUDINARY_PRESET = 'rocketrush_signatures';
 var FORMSPREE_URL     = 'https://formspree.io/f/meebzlwo';
-var _a='Z2hw',_b='X0VYckNvdXVBQmRGT0JmZ2w5c0w0cTJVc0FsZ3VXbTJzeHRLOQ==';var GITHUB_TOKEN=atob(_a+_b);
-var GITHUB_REPO       = 'teamrocketrush-ui/rr-proposals';
-var GITHUB_FILE_PATH  = 'proposals/{{CLIENT_COMPANY_KEY}}.html';
-var STORAGE_KEY       = 'rr_signed_{{CLIENT_COMPANY_KEY}}';
+var PROPOSAL_KEY      = '{{CLIENT_COMPANY_KEY}}';
 
 /* ── STATE ── */
 var uploadedFile = null;
 
-/* ── ON LOAD: check if already signed in file itself ── */
-(function() {
-  var signedMeta = document.getElementById('signed-meta');
-  if (signedMeta && signedMeta.dataset.signed === 'true') {
-    showSignedState({
-      date:   signedMeta.dataset.date,
-      sigUrl: signedMeta.dataset.sigurl
+/* ── ON PAGE LOAD: check Firebase for signed state ── */
+document.addEventListener('DOMContentLoaded', function() {
+  db.collection('signatures').doc(PROPOSAL_KEY).get()
+    .then(function(doc) {
+      if (doc.exists && doc.data().signed === true) {
+        showSignedState(doc.data());
+      }
+    })
+    .catch(function(err) {
+      console.log('Firebase check failed, continuing unsigned:', err);
     });
-    return;
-  }
-  // Fallback: check localStorage
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      var data = JSON.parse(raw);
-      if (data && data.date) showSignedState(data);
-    }
-  } catch(e) {}
-})();
+});
 
 /* ── ACCORDION ── */
 function toggleAcc(btn) {
@@ -532,7 +535,7 @@ function handleUpload(input) {
     preview.src = e.target.result;
     preview.style.display = 'block';
     area.classList.add('has-file');
-    document.getElementById('upload-icon').style.display  = 'none';
+    document.getElementById('upload-icon').style.display = 'none';
     document.getElementById('upload-text').innerHTML = '<strong>Signature uploaded</strong>Click to change';
   };
   reader.readAsDataURL(file);
@@ -544,76 +547,30 @@ function uploadToCloudinary(file) {
     var fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', CLOUDINARY_PRESET);
-    fd.append('folder', 'signatures');
+    fd.append('folder', 'signatures/' + PROPOSAL_KEY);
+    fd.append('public_id', PROPOSAL_KEY + '_client_sig');
     fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
       method: 'POST', body: fd
     })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
       if (data.secure_url) resolve(data.secure_url);
-      else reject('Cloudinary upload failed');
+      else reject('Cloudinary upload failed: ' + JSON.stringify(data));
     })
     .catch(reject);
   });
 }
 
-/* ── WRITE SIGNED STATE BACK TO GITHUB FILE ── */
-function writeSignedStateToGitHub(sigUrl, signedDate) {
-  return new Promise(function(resolve, reject) {
-    // First get current file SHA and content
-    fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE_PATH, {
-      headers: {
-        'Authorization': 'token ' + GITHUB_TOKEN,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(fileData) {
-      var sha = fileData.sha;
-      // Decode current content
-      var currentContent = atob(fileData.content.replace(/
-/g,''));
-      // Update signed-meta tag with signed data
-      var updatedContent = currentContent.replace(
-        '<meta id="signed-meta" data-signed="false" data-date="" data-sigurl="">',
-        '<meta id="signed-meta" data-signed="true" data-date="' + signedDate + '" data-sigurl="' + sigUrl + '">'
-      );
-      // Also hide the form and show signed state in HTML itself
-      updatedContent = updatedContent.replace(
-        'id="proposal-form-wrap">',
-        'id="proposal-form-wrap" style="display:none">'
-      );
-      updatedContent = updatedContent.replace(
-        'id="thankyou-screen">',
-        'id="thankyou-screen" style="display:block">'
-      );
-      updatedContent = updatedContent.replace(
-        'id="signed-banner">',
-        'id="signed-banner" style="display:block">'
-      );
-      // Encode back to base64
-      var encoded = btoa(unescape(encodeURIComponent(updatedContent)));
-      // Push back to GitHub
-      return fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE_PATH, {
-        method: 'PUT',
-        headers: {
-          'Authorization': 'token ' + GITHUB_TOKEN,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: 'Proposal signed by {{CLIENT_SIGNATORY}} on ' + signedDate,
-          content: encoded,
-          sha: sha
-        })
-      });
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(result){
-      if (result.content) resolve(result);
-      else reject('GitHub update failed: ' + JSON.stringify(result));
-    })
-    .catch(reject);
+/* ── SAVE TO FIREBASE ── */
+function saveToFirebase(sigUrl, signedDate) {
+  return db.collection('signatures').doc(PROPOSAL_KEY).set({
+    signed:      true,
+    date:        signedDate,
+    sigUrl:      sigUrl,
+    client:      '{{CLIENT_COMPANY}}',
+    signatory:   '{{CLIENT_SIGNATORY}}',
+    proposal:    PROPOSAL_KEY,
+    timestamp:   firebase.firestore.FieldValue.serverTimestamp()
   });
 }
 
@@ -623,17 +580,18 @@ function showSignedState(data) {
   document.getElementById('nav-sign-btn').style.display     = 'none';
   var banner = document.getElementById('signed-banner');
   banner.style.display = 'block';
-  document.getElementById('signed-banner-sub').textContent  = 'Signed on ' + data.date + '. Both parties have agreed to the terms of this proposal.';
-  document.getElementById('upload-area').style.display      = 'none';
+  document.getElementById('signed-banner-sub').textContent =
+    'Signed on ' + data.date + '. Both parties have agreed to the terms of this proposal.';
+  document.getElementById('upload-area').style.display = 'none';
   if (data.sigUrl) {
     var display = document.getElementById('client-sig-display');
     display.style.display = 'flex';
     document.getElementById('client-sig-img').src = data.sigUrl;
   }
   var tag = document.getElementById('sig-date-tag');
-  tag.textContent      = 'Signed ' + data.date;
-  tag.style.display    = 'inline-block';
-  document.getElementById('client-sig-label').textContent   = 'signed';
+  tag.textContent   = 'Signed ' + data.date;
+  tag.style.display = 'inline-block';
+  document.getElementById('client-sig-label').textContent     = 'signed';
   document.getElementById('proposal-form-wrap').style.display = 'none';
   document.getElementById('thankyou-screen').style.display    = 'block';
 }
@@ -641,46 +599,45 @@ function showSignedState(data) {
 /* ── SUBMIT ── */
 function submitProposal() {
   var accepted = document.getElementById('accept-checkbox').checked;
-  var err = document.getElementById('form-error');
+  var err      = document.getElementById('form-error');
   err.style.display = 'none';
+
   if (!uploadedFile) {
     err.style.display = 'block';
-    err.textContent = 'Please upload your signature before submitting.';
+    err.textContent   = 'Please upload your signature before submitting.';
     return;
   }
   if (!accepted) {
     err.style.display = 'block';
-    err.textContent = 'Please check the acceptance box to confirm you agree to this proposal.';
+    err.textContent   = 'Please check the acceptance box to confirm you agree to this proposal.';
     return;
   }
 
   var btn = document.getElementById('submit-btn');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Uploading signature...';
   document.getElementById('uploading-state').style.display = 'block';
   document.querySelector('.checkbox-wrap').style.display   = 'none';
 
   var signedDate = new Date().toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
+    timeZone:  'Asia/Kolkata',
     day: 'numeric', month: 'long', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
 
   var sigUrl = null;
 
-  // Step 1: Upload to Cloudinary
+  /* Step 1: Upload signature to Cloudinary */
   uploadToCloudinary(uploadedFile)
   .then(function(url) {
-    sigUrl = url;
+    sigUrl          = url;
     btn.textContent = 'Saving to records...';
-
-    // Step 2: Write signed state back to GitHub file
-    return writeSignedStateToGitHub(url, signedDate);
+    /* Step 2: Save signed state to Firebase */
+    return saveToFirebase(url, signedDate);
   })
   .then(function() {
     btn.textContent = 'Notifying RocketRush...';
-
-    // Step 3: Send Formspree notification
+    /* Step 3: Send email notification via Formspree */
     var formData = new FormData();
     formData.append('_subject',        'Proposal signed — {{CLIENT_COMPANY}}');
     formData.append('client_name',     '{{CLIENT_SIGNATORY}}');
@@ -690,28 +647,25 @@ function submitProposal() {
     formData.append('accepted_terms',  'Yes — checkbox confirmed');
     formData.append('signed_at',       signedDate);
     formData.append('signature_url',   sigUrl);
-    formData.append('proposal_url',    'https://teamrocketrush-ui.github.io/rr-proposals/' + GITHUB_FILE_PATH);
-
+    formData.append('proposal_url',    window.location.href);
     return fetch(FORMSPREE_URL, {
       method: 'POST', body: formData,
       headers: { Accept: 'application/json' }
     });
   })
   .then(function() {
-    // Step 4: Save to localStorage as fast fallback
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: signedDate, sigUrl: sigUrl })); } catch(e) {}
-    // Step 5: Show signed state in UI
+    /* Step 4: Show signed state in UI */
     showSignedState({ date: signedDate, sigUrl: sigUrl });
     document.getElementById('thankyou-screen').scrollIntoView({ behavior: 'smooth' });
   })
-  .catch(function(err) {
-    console.error(err);
-    btn.disabled = false;
+  .catch(function(error) {
+    console.error('Submission error:', error);
+    btn.disabled    = false;
     btn.textContent = 'Submit and sign proposal';
     document.getElementById('uploading-state').style.display = 'none';
     document.querySelector('.checkbox-wrap').style.display   = 'flex';
-    document.getElementById('form-error').style.display      = 'block';
-    document.getElementById('form-error').textContent        = 'Something went wrong. Please try again or contact us directly.';
+    err.style.display = 'block';
+    err.textContent   = 'Something went wrong. Please try again or contact us directly.';
   });
 }
 </script>

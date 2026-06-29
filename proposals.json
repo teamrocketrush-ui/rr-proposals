@@ -4,13 +4,27 @@
     "client_name": "Alphastar Technologies Private Limited",
     "signatory": "Ujwal Kalra",
     "gstin": "06AAWCA0898H1Z4",
-    "monthly_fee": "\u20b955,000",
-    "total_fee": "\u20b964,900",
+    "monthly_fee": "₹55,000",
+    "total_fee": "₹64,900",
     "engagement": "Pilot",
     "duration": "3 months",
-    "num_posts": "10\u201312",
+    "num_posts": "10–12",
     "num_connections": "150",
     "created_date": "29 June 2026",
     "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/alphastar-technologies.html"
+  },
+  {
+    "id": "ludo-pvt-ltd",
+    "client_name": "Ludo Pvt Ltd",
+    "signatory": "Swati Mishra",
+    "gstin": "AB65884BGDSD65",
+    "monthly_fee": "₹50,000",
+    "total_fee": "₹59,000",
+    "engagement": "Pilot",
+    "duration": "3 months",
+    "num_posts": "12–16",
+    "num_connections": "200",
+    "created_date": "29 June 2026",
+    "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/ludo-pvt-ltd.html"
   }
 ]

@@ -199,8 +199,6 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
   footer{padding:20px 16px;flex-direction:column;gap:8px;text-align:center}
 }
 </style>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -479,9 +477,13 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
   <div class="footer-note">Confidential — Rocket Rush Partners · GSTIN 09ABLFR1598J1ZG</div>
 </footer>
 
-<script>
-/* ── FIREBASE CONFIG ── */
-var firebaseConfig = {
+<script type="module">
+/* ── FIREBASE (ESM via CDN) ── */
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+                                   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
   apiKey:            "AIzaSyD0ePC5pzuZHO1eOc_baISnHZg18Ufohbo",
   authDomain:        "rocketrush-proposals.firebaseapp.com",
   projectId:         "rocketrush-proposals",
@@ -489,117 +491,113 @@ var firebaseConfig = {
   messagingSenderId: "662352830335",
   appId:             "1:662352830335:web:3bd7dea8915d309a10844a"
 };
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
 
-/* ── OTHER CONFIG ── */
-var CLOUDINARY_CLOUD  = 'dsjpiafaa';
-var CLOUDINARY_PRESET = 'rocketrush_signatures';
-var FORMSPREE_URL     = 'https://formspree.io/f/meebzlwo';
-var PROPOSAL_KEY      = '{{CLIENT_COMPANY_KEY}}';
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+/* ── CONFIG ── */
+const CLOUDINARY_CLOUD  = 'dsjpiafaa';
+const CLOUDINARY_PRESET = 'rocketrush_signatures';
+const FORMSPREE_URL     = 'https://formspree.io/f/meebzlwo';
+const PROPOSAL_KEY      = '{{CLIENT_COMPANY_KEY}}';
 
 /* ── STATE ── */
-var uploadedFile = null;
+let uploadedFile = null;
 
-/* ── ON PAGE LOAD: check Firebase for signed state ── */
-document.addEventListener('DOMContentLoaded', function() {
-  db.collection('signatures').doc(PROPOSAL_KEY).get()
-    .then(function(doc) {
-      if (doc.exists && doc.data().signed === true) {
-        showSignedState(doc.data());
-      }
-    })
-    .catch(function(err) {
-      console.log('Firebase check failed, continuing unsigned:', err);
-    });
-});
+/* ── ON PAGE LOAD: check Firebase ── */
+(async function checkSignedState() {
+  try {
+    const docRef  = doc(db, 'signatures', PROPOSAL_KEY);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists() && docSnap.data().signed === true) {
+      showSignedState(docSnap.data());
+    }
+  } catch(e) {
+    console.log('Firebase check error:', e);
+  }
+})();
 
 /* ── ACCORDION ── */
-function toggleAcc(btn) {
-  var body = btn.nextElementSibling;
-  var isOpen = body.classList.contains('open');
-  document.querySelectorAll('.acc-body.open').forEach(function(b){b.classList.remove('open')});
-  document.querySelectorAll('.acc-trigger.open').forEach(function(b){b.classList.remove('open')});
+window.toggleAcc = function(btn) {
+  const body   = btn.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.acc-body.open').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.acc-trigger.open').forEach(b => b.classList.remove('open'));
   if (!isOpen) { body.classList.add('open'); btn.classList.add('open'); }
-}
+};
 
 /* ── FILE UPLOAD PREVIEW ── */
-function handleUpload(input) {
-  var file = input.files[0];
+window.handleUpload = function(input) {
+  const file = input.files[0];
   if (!file) return;
   uploadedFile = file;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var preview = document.getElementById('upload-preview');
-    var area    = document.getElementById('upload-area');
-    preview.src = e.target.result;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('upload-preview');
+    const area    = document.getElementById('upload-area');
+    preview.src   = e.target.result;
     preview.style.display = 'block';
     area.classList.add('has-file');
     document.getElementById('upload-icon').style.display = 'none';
     document.getElementById('upload-text').innerHTML = '<strong>Signature uploaded</strong>Click to change';
   };
   reader.readAsDataURL(file);
-}
+};
 
 /* ── UPLOAD TO CLOUDINARY ── */
-function uploadToCloudinary(file) {
-  return new Promise(function(resolve, reject) {
-    var fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLOUDINARY_PRESET);
-    fd.append('folder', 'signatures/' + PROPOSAL_KEY);
-    fd.append('public_id', PROPOSAL_KEY + '_client_sig');
-    fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
-      method: 'POST', body: fd
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.secure_url) resolve(data.secure_url);
-      else reject('Cloudinary upload failed: ' + JSON.stringify(data));
-    })
-    .catch(reject);
+async function uploadToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  fd.append('folder', 'signatures/' + PROPOSAL_KEY);
+  fd.append('public_id', PROPOSAL_KEY + '_client_sig');
+  const res  = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', {
+    method: 'POST', body: fd
   });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error('Cloudinary upload failed: ' + JSON.stringify(data));
+  return data.secure_url;
 }
 
 /* ── SAVE TO FIREBASE ── */
-function saveToFirebase(sigUrl, signedDate) {
-  return db.collection('signatures').doc(PROPOSAL_KEY).set({
-    signed:      true,
-    date:        signedDate,
-    sigUrl:      sigUrl,
-    client:      '{{CLIENT_COMPANY}}',
-    signatory:   '{{CLIENT_SIGNATORY}}',
-    proposal:    PROPOSAL_KEY,
-    timestamp:   firebase.firestore.FieldValue.serverTimestamp()
+async function saveToFirebase(sigUrl, signedDate) {
+  await setDoc(doc(db, 'signatures', PROPOSAL_KEY), {
+    signed:    true,
+    date:      signedDate,
+    sigUrl:    sigUrl,
+    client:    '{{CLIENT_COMPANY}}',
+    signatory: '{{CLIENT_SIGNATORY}}',
+    proposal:  PROPOSAL_KEY,
+    timestamp: serverTimestamp()
   });
 }
 
-/* ── SHOW SIGNED STATE (UI) ── */
+/* ── SHOW SIGNED STATE ── */
 function showSignedState(data) {
   document.getElementById('nav-signed-badge').style.display = 'inline-block';
   document.getElementById('nav-sign-btn').style.display     = 'none';
-  var banner = document.getElementById('signed-banner');
+  const banner = document.getElementById('signed-banner');
   banner.style.display = 'block';
   document.getElementById('signed-banner-sub').textContent =
     'Signed on ' + data.date + '. Both parties have agreed to the terms of this proposal.';
   document.getElementById('upload-area').style.display = 'none';
   if (data.sigUrl) {
-    var display = document.getElementById('client-sig-display');
+    const display = document.getElementById('client-sig-display');
     display.style.display = 'flex';
     document.getElementById('client-sig-img').src = data.sigUrl;
   }
-  var tag = document.getElementById('sig-date-tag');
+  const tag = document.getElementById('sig-date-tag');
   tag.textContent   = 'Signed ' + data.date;
   tag.style.display = 'inline-block';
-  document.getElementById('client-sig-label').textContent     = 'signed';
-  document.getElementById('proposal-form-wrap').style.display = 'none';
-  document.getElementById('thankyou-screen').style.display    = 'block';
+  document.getElementById('client-sig-label').textContent      = 'signed';
+  document.getElementById('proposal-form-wrap').style.display  = 'none';
+  document.getElementById('thankyou-screen').style.display     = 'block';
 }
 
 /* ── SUBMIT ── */
-function submitProposal() {
-  var accepted = document.getElementById('accept-checkbox').checked;
-  var err      = document.getElementById('form-error');
+window.submitProposal = async function() {
+  const accepted = document.getElementById('accept-checkbox').checked;
+  const err      = document.getElementById('form-error');
   err.style.display = 'none';
 
   if (!uploadedFile) {
@@ -613,52 +611,46 @@ function submitProposal() {
     return;
   }
 
-  var btn = document.getElementById('submit-btn');
+  const btn = document.getElementById('submit-btn');
   btn.disabled    = true;
   btn.textContent = 'Uploading signature...';
   document.getElementById('uploading-state').style.display = 'block';
   document.querySelector('.checkbox-wrap').style.display   = 'none';
 
-  var signedDate = new Date().toLocaleString('en-IN', {
+  const signedDate = new Date().toLocaleString('en-IN', {
     timeZone:  'Asia/Kolkata',
     day: 'numeric', month: 'long', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
 
-  var sigUrl = null;
+  try {
+    /* Step 1: Cloudinary */
+    btn.textContent = 'Uploading signature...';
+    const sigUrl = await uploadToCloudinary(uploadedFile);
 
-  /* Step 1: Upload signature to Cloudinary */
-  uploadToCloudinary(uploadedFile)
-  .then(function(url) {
-    sigUrl          = url;
+    /* Step 2: Firebase */
     btn.textContent = 'Saving to records...';
-    /* Step 2: Save signed state to Firebase */
-    return saveToFirebase(url, signedDate);
-  })
-  .then(function() {
+    await saveToFirebase(sigUrl, signedDate);
+
+    /* Step 3: Formspree */
     btn.textContent = 'Notifying RocketRush...';
-    /* Step 3: Send email notification via Formspree */
-    var formData = new FormData();
-    formData.append('_subject',        'Proposal signed — {{CLIENT_COMPANY}}');
-    formData.append('client_name',     '{{CLIENT_SIGNATORY}}');
-    formData.append('company',         '{{CLIENT_COMPANY}}');
-    formData.append('engagement_type', '{{ENGAGEMENT_LABEL}}');
-    formData.append('duration',        '{{DURATION_VALUE}}');
-    formData.append('accepted_terms',  'Yes — checkbox confirmed');
-    formData.append('signed_at',       signedDate);
-    formData.append('signature_url',   sigUrl);
-    formData.append('proposal_url',    window.location.href);
-    return fetch(FORMSPREE_URL, {
-      method: 'POST', body: formData,
-      headers: { Accept: 'application/json' }
-    });
-  })
-  .then(function() {
-    /* Step 4: Show signed state in UI */
+    const fd = new FormData();
+    fd.append('_subject',        'Proposal signed — {{CLIENT_COMPANY}}');
+    fd.append('client_name',     '{{CLIENT_SIGNATORY}}');
+    fd.append('company',         '{{CLIENT_COMPANY}}');
+    fd.append('engagement_type', '{{ENGAGEMENT_LABEL}}');
+    fd.append('duration',        '{{DURATION_VALUE}}');
+    fd.append('accepted_terms',  'Yes — checkbox confirmed');
+    fd.append('signed_at',       signedDate);
+    fd.append('signature_url',   sigUrl);
+    fd.append('proposal_url',    window.location.href);
+    await fetch(FORMSPREE_URL, { method: 'POST', body: fd, headers: { Accept: 'application/json' } });
+
+    /* Step 4: Show signed UI */
     showSignedState({ date: signedDate, sigUrl: sigUrl });
     document.getElementById('thankyou-screen').scrollIntoView({ behavior: 'smooth' });
-  })
-  .catch(function(error) {
+
+  } catch(error) {
     console.error('Submission error:', error);
     btn.disabled    = false;
     btn.textContent = 'Submit and sign proposal';
@@ -666,8 +658,8 @@ function submitProposal() {
     document.querySelector('.checkbox-wrap').style.display   = 'flex';
     err.style.display = 'block';
     err.textContent   = 'Something went wrong. Please try again or contact us directly.';
-  });
-}
+  }
+};
 </script>
 </script>
 

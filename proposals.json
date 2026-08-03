@@ -42,20 +42,6 @@
     "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/rays-culinary-delights.html"
   },
   {
-    "id": "hcts-international-fze",
-    "client_name": "HCTS International FZE",
-    "signatory": "Ryan Gazder",
-    "gstin": "N/A (International Client)",
-    "monthly_fee": "₹50,000",
-    "total_fee": "₹50,000",
-    "engagement": "Pilot",
-    "duration": "3 months",
-    "num_posts": "16",
-    "num_connections": "300",
-    "created_date": "24 July 2026",
-    "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/hcts-international-fze.html"
-  },
-  {
     "id": "shikharpe",
     "client_name": "Shikharpe Private Limited",
     "signatory": "Rajiv Goyal",
@@ -68,5 +54,19 @@
     "num_connections": "250 (Personalised)",
     "created_date": "27 July 2026",
     "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/shikharpe.html"
+  },
+  {
+    "id": "hcts-international-fze",
+    "client_name": "HCTS International FZE",
+    "signatory": "Ryan Gazder",
+    "gstin": "N/A (International Client)",
+    "monthly_fee": "₹80,000",
+    "total_fee": "₹80,000",
+    "engagement": "Pilot",
+    "duration": "3 months",
+    "num_posts": "16 per profile (2 profiles)",
+    "num_connections": "150 per profile",
+    "created_date": "3 August 2026",
+    "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/hcts-international-fze.html"
   }
 ]

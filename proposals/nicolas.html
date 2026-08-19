@@ -214,11 +214,11 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
   <div class="hero-inner">
     <div class="hero-eyebrow">LinkedIn Management</div>
     <h1 class="hero-title">Proposal &<br>Agreement</h1>
-    <p class="hero-sub">Letter of Agreement — prepared exclusively for <strong>Nicolas</strong></p>
+    <p class="hero-sub">Letter of Agreement — prepared exclusively for <strong>Nicholas Taylor</strong></p>
     <div class="hero-cards">
       <div class="hero-card">
         <div class="hero-card-label">Prepared for</div>
-        <div class="hero-card-name">Nicolas</div>
+        <div class="hero-card-name">Nicholas Taylor</div>
         <div class="hero-card-gstin">GSTIN: N/A (International Client)</div>
       </div>
       <div class="hero-card">
@@ -250,7 +250,7 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
       </div>
       <div class="hero-meta-item">
         <div class="meta-label">Signatory</div>
-        <div class="meta-val">Nicolas</div>
+        <div class="meta-val">Nicholas Taylor</div>
       </div>
     </div>
   </div>
@@ -443,8 +443,8 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
           <img id="client-sig-img" src="" alt="Client signature">
         </div>
         <div class="sig-line" style="margin-top:0"></div>
-        <div class="sig-name">Nicolas</div>
-        <div class="sig-title-text">Authorised Signatory — Nicolas</div>
+        <div class="sig-name">Nicholas Taylor</div>
+        <div class="sig-title-text">Authorised Signatory — Nicholas Taylor</div>
         <div class="sig-date-tag" id="sig-date-tag"></div>
       </div>
     </div>
@@ -466,7 +466,7 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
     <div class="thankyou-screen" id="thankyou-screen">
       <div class="thankyou-check">✓</div>
       <div class="thankyou-title">Welcome to RocketRush.</div>
-      <div class="thankyou-body">Thank you, Nicolas. We're genuinely excited to start this journey with you and the team at Nicolas.<br><br>We'll reach out within 24 hours to schedule your first strategy call.</div>
+      <div class="thankyou-body">Thank you, Nicholas Taylor. We're genuinely excited to start this journey with you and the team at Nicholas Taylor.<br><br>We'll reach out within 24 hours to schedule your first strategy call.</div>
       <div class="thankyou-note">You can scroll up to review the full proposal anytime. This page is your permanent record of the signed agreement — bookmark this link.</div>
     </div>
   </div>
@@ -565,8 +565,8 @@ async function saveToFirebase(sigUrl, signedDate) {
     signed:    true,
     date:      signedDate,
     sigUrl:    sigUrl,
-    client:    'Nicolas',
-    signatory: 'Nicolas',
+    client:    'Nicholas Taylor',
+    signatory: 'Nicholas Taylor',
     proposal:  PROPOSAL_KEY,
     timestamp: serverTimestamp()
   });
@@ -635,9 +635,9 @@ window.submitProposal = async function() {
     /* Step 3: Formspree */
     btn.textContent = 'Notifying RocketRush...';
     const fd = new FormData();
-    fd.append('_subject',        'Proposal signed — Nicolas');
-    fd.append('client_name',     'Nicolas');
-    fd.append('company',         'Nicolas');
+    fd.append('_subject',        'Proposal signed — Nicholas Taylor');
+    fd.append('client_name',     'Nicholas Taylor');
+    fd.append('company',         'Nicholas Taylor');
     fd.append('engagement_type', 'Pilot');
     fd.append('duration',        '6 months');
     fd.append('accepted_terms',  'Yes — checkbox confirmed');

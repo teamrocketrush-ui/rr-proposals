@@ -82,5 +82,19 @@
     "num_connections": "N/A",
     "created_date": "19 August 2026",
     "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/michail-chopra.html"
+  },
+  {
+    "id": "nicolas",
+    "client_name": "Nicolas",
+    "signatory": "Nicolas",
+    "gstin": "N/A (International Client)",
+    "monthly_fee": "£150",
+    "total_fee": "£150",
+    "engagement": "Pilot",
+    "duration": "6 months",
+    "num_posts": "3–4",
+    "num_connections": "N/A",
+    "created_date": "19 August 2026",
+    "url": "https://teamrocketrush-ui.github.io/rr-proposals/proposals/nicolas.html"
   }
 ]

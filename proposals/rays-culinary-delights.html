@@ -214,11 +214,11 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
   <div class="hero-inner">
     <div class="hero-eyebrow">LinkedIn Management</div>
     <h1 class="hero-title">Proposal &<br>Agreement</h1>
-    <p class="hero-sub">Letter of Agreement — prepared exclusively for <strong>Rays Culinary Delights Private Limited</strong></p>
+    <p class="hero-sub">Letter of Agreement — prepared exclusively for <strong>Rays Culinary Delights Pvt Ltd</strong></p>
     <div class="hero-cards">
       <div class="hero-card">
         <div class="hero-card-label">Prepared for</div>
-        <div class="hero-card-name">Rays Culinary Delights Private Limited</div>
+        <div class="hero-card-name">Rays Culinary Delights Pvt Ltd</div>
         <div class="hero-card-gstin">GSTIN: 08AAGCR7421K1Z3</div>
       </div>
       <div class="hero-card">
@@ -444,7 +444,7 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
         </div>
         <div class="sig-line" style="margin-top:0"></div>
         <div class="sig-name">Prasoon Gupta</div>
-        <div class="sig-title-text">Authorised Signatory — Rays Culinary Delights Private Limited</div>
+        <div class="sig-title-text">Authorised Signatory — Rays Culinary Delights Pvt Ltd</div>
         <div class="sig-date-tag" id="sig-date-tag"></div>
       </div>
     </div>
@@ -466,7 +466,7 @@ footer{border-top:1px solid var(--border);padding:24px 32px;display:flex;justify
     <div class="thankyou-screen" id="thankyou-screen">
       <div class="thankyou-check">✓</div>
       <div class="thankyou-title">Welcome to RocketRush.</div>
-      <div class="thankyou-body">Thank you, Prasoon Gupta. We're genuinely excited to start this journey with you and the team at Rays Culinary Delights Private Limited.<br><br>We'll reach out within 24 hours to schedule your first strategy call.</div>
+      <div class="thankyou-body">Thank you, Prasoon Gupta. We're genuinely excited to start this journey with you and the team at Rays Culinary Delights Pvt Ltd.<br><br>We'll reach out within 24 hours to schedule your first strategy call.</div>
       <div class="thankyou-note">You can scroll up to review the full proposal anytime. This page is your permanent record of the signed agreement — bookmark this link.</div>
     </div>
   </div>
@@ -565,7 +565,7 @@ async function saveToFirebase(sigUrl, signedDate) {
     signed:    true,
     date:      signedDate,
     sigUrl:    sigUrl,
-    client:    'Rays Culinary Delights Private Limited',
+    client:    'Rays Culinary Delights Pvt Ltd',
     signatory: 'Prasoon Gupta',
     proposal:  PROPOSAL_KEY,
     timestamp: serverTimestamp()
@@ -635,9 +635,9 @@ window.submitProposal = async function() {
     /* Step 3: Formspree */
     btn.textContent = 'Notifying RocketRush...';
     const fd = new FormData();
-    fd.append('_subject',        'Proposal signed — Rays Culinary Delights Private Limited');
+    fd.append('_subject',        'Proposal signed — Rays Culinary Delights Pvt Ltd');
     fd.append('client_name',     'Prasoon Gupta');
-    fd.append('company',         'Rays Culinary Delights Private Limited');
+    fd.append('company',         'Rays Culinary Delights Pvt Ltd');
     fd.append('engagement_type', 'Pilot');
     fd.append('duration',        '3 months');
     fd.append('accepted_terms',  'Yes — checkbox confirmed');
